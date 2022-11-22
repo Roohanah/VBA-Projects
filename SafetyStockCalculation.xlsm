@@ -1,0 +1,61 @@
+Private Sub SS_Calc()
+    
+    Dim AD, Avg_D, FD, Q, LT As Long
+    Dim SD As Double
+    Dim SCLmin, SCLmax, Safety_Stock, Z, FR, G, x, Lz, dLT, dD, min, max As Double
+    Dim Wb As Workbook
+    Dim Ws As Worksheet
+    Dim lRow As Integer
+    
+    Set Wb = ThisWorkbook
+    Set Ws = Wb.Worksheets("Q1")
+    
+    SD = CLng(STD_TB.Value)
+    LT = CLng(LeadTime_TB.Value)
+    AD = CLng(Annual_Demand_TB.Value)
+    Q = CLng(LotSize_TB.Value)
+    
+        If CB_OB.Value = True Then
+            FR = CLng(FR_CB.Value)
+        ElseIf LB_OB.Value = True Then
+            FR = CLng(FR_LB.Value)
+        End If
+    
+    
+    FR = FR / 100
+    dLT = Sqr(LT) * SD
+    dD = AD * LT
+    Lz = ((1 - FR) * Q) / (dLT)
+    
+    lRow = Cells(Rows.Count, 6).End(xlUp).Row
+    Ws.Range("F2:F" & lRow + 1) = "=NORM.DIST(E2,0,1,FALSE)-E2*NORM.S.DIST(-E2,TRUE)"
+    Ws.Range("G2:G" & lRow + 1) = "=NORM.S.DIST(E2,TRUE)"
+    lRow = Cells(Rows.Count, 6).End(xlUp).Row
+    
+    Ws.Cells(lRow, 6).GoalSeek Goal:=Lz, ChangingCell:=Ws.Cells(lRow, 5)
+    
+    Z = Ws.Cells(lRow, 5).Value
+    Safety_Stock = Z * dLT
+    min = Safety_Stock + dD
+    max = min + Q
+    CSL = Application.WorksheetFunction.Norm_Dist(min, dD, dLT, True)
+    
+    CSL = Format(CSL, "#.##")
+    CSLmax = Format(CSLmax, "#.##")
+    FR = Format(FR, "#.##")
+    Z = Format(Z, "#.##")
+    Safety_Stock = Format(Safety_Stock, "#.##")
+    
+    Ws.Cells(lRow, 1).Value = LotSize_TB.Value
+    Ws.Cells(lRow, 2).Value = Annual_Demand_TB.Value
+    Ws.Cells(lRow, 3).Value = STD_TB.Value
+    Ws.Cells(lRow, 4).Value = LeadTime_TB.Value
+    Ws.Cells(lRow, 8).Value = Safety_Stock
+    Ws.Cells(lRow, 9).Value = FR
+    Ws.Cells(lRow, 10).Value = CSL
+    Ws.Cells(lRow, 11).Value = min
+    Ws.Cells(lRow, 12).Value = max
+ 
+    
+    
+End Sub
